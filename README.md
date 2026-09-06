@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="glitch.gif" alt="Glitch effect" width="100%">
+  <img src="images/glitch.gif" alt="Glitch effect" width="100%">
 </p>
 
 # 🛡️ SQLMap Tampers – Bearded Viking Security Forge
@@ -98,7 +98,7 @@ This project is licensed under the MIT License – see the [LICENSE.md[(LICENSE.
 # 👨‍💻 About the Author
 
 <p align="center>
-  <img src="hackers_in_the_zone.gif" alt="Hackers in the Zone" width="45%">
+  <img src="images/hackers_in_the_zone.gif" alt="Hackers in the Zone" width="45%">
 </p>
 
 **Bearded Viking** (BeardedVikingTX) – Security researcher, penetration tester, and open‑source contributor.  
@@ -112,7 +112,7 @@ This project is licensed under the MIT License – see the [LICENSE.md[(LICENSE.
 We’re constantly adding new tampers and enhancing existing ones.
 Star ⭐ the repo to stay updated, and feel free to open issues or PRs with your own ideas!
 <p align="center"> 
-  <img src="matrix_female_animated.gif" alt="Matrix hacker" width="45%"> 
+  <img src="images/matrix_female_animated.gif" alt="Matrix hacker" width="45%"> 
 </p>
 
 **Happy (`ethical`) hacking! 🛡️**
