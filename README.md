@@ -96,18 +96,21 @@ _The author (Bearded Viking / Bearded Viking Security Forge) assumes **no liabil
 This project is licensed under the MIT License – see the [LICENSE.md[(LICENSE.md) file for details.
 
 # 👨‍💻 About the Author
-**Bearded Viking** (BeardedVikingTX) – Security researcher, penetration tester, and open‑source contributor.
-🌐 [Web](https://beardedviking.org)
-🎥 [TikTok](https://www.tiktok.com/@beardedvikingtx)
-👨‍💻 [LinkedIn](https://www.linkedin.com/in/bearded-viking-3112a8431/)
-📘 [Facebook](https://www.facebook.com/BeardedVikingTX)
-✒️ [Medium](https://beardedviking.medium.com/)
+<p align="center>
+  <img src="hackers_in_the_zone.gif" alt="Hackers in the Zone" width="45%">
+</p>
+**Bearded Viking** (BeardedVikingTX) – Security researcher, penetration tester, and open‑source contributor.  
+🌐 [Web](https://beardedviking.org)  
+🎥 [TikTok](https://www.tiktok.com/@beardedvikingtx)  
+👨‍💻 [LinkedIn](https://www.linkedin.com/in/bearded-viking-3112a8431/)  
+📘 [Facebook](https://www.facebook.com/BeardedVikingTX)  
+✒️ [Medium](https://beardedviking.medium.com/)  
 
 # 🧩 Stay Tuned
 We’re constantly adding new tampers and enhancing existing ones.
 Star ⭐ the repo to stay updated, and feel free to open issues or PRs with your own ideas!
 <p align="center"> 
-  <img src="matrix_female_animated.gif" alt="Matrix hacker" width="45%"> <img src="hackers_in_the_zone.gif" alt="Hackers in the zone" width="45%"> 
+  <img src="matrix_female_animated.gif" alt="Matrix hacker" width="45%"> 
 </p>
 
 **Happy (`ethical`) hacking! 🛡️**
