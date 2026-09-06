@@ -96,9 +96,11 @@ _The author (Bearded Viking / Bearded Viking Security Forge) assumes **no liabil
 This project is licensed under the MIT License – see the [LICENSE.md[(LICENSE.md) file for details.
 
 # 👨‍💻 About the Author
+
 <p align="center>
   <img src="hackers_in_the_zone.gif" alt="Hackers in the Zone" width="45%">
 </p>
+
 **Bearded Viking** (BeardedVikingTX) – Security researcher, penetration tester, and open‑source contributor.  
 * 🌐 [Web](https://beardedviking.org)  
 * 🎥 [TikTok](https://www.tiktok.com/@beardedvikingtx)  
