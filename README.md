@@ -64,7 +64,7 @@ sqlmap --list-tampers | grep -E "(json_unicode_escape|math_exp_obfuscator|nested
 
 * **Tamper Scripts AFTER Installing Our Scripts:**
 <p align="center">
-  <img src="images/sqlmap_tampers_after_bash_script.png" alt="SQLMap Tamper Scripts AFTER Installing Custom Scripts." withd="80%">
+  <img src="images/sqlmap_tampers_after_bash_script.png" alt="SQLMap Tamper Scripts AFTER Installing Custom Scripts." width="80%">
 </p>
 
 ## 🎯 Usage Examples
