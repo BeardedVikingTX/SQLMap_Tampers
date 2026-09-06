@@ -100,6 +100,88 @@ SETTINGS = {
 }
 ```
 
+## 🔧 Pre/Post‑Processing Hooks
+Beyond tamper scripts, sqlmap offers **pre‑processing** and **post‑processing** hooks that let you **modify every request before it’s sent** and **inspect/alter every response** before sqlmap processes it.  
+
+This is invaluable for:
+* **Session management** – _automatically extract and inject CSRF tokens, JWTs, or nonces._  
+* **Custom encoding** – _encode payloads in Base64, hex, or your own scheme._  
+* **Header rotation** – _spoof `X‑Forwarded‑For`, rotate User‑Agents, add timestamps._  
+* **Response decoding** – _decompress gzip, unwrap Base64, extract JSON values._  
+* **Multi‑step authentication** – _handle login flows programmatically._  
+
+We provide **two levels** of hooks:
+
+## 🧩 Simple Examples: `preprocess.py` & `postprocess.py`
+These are minimal, single‑purpose scripts that demonstrate the hook concept:
+* `preprocess.py` – Injects a static CSRF token into every POST request and adds a custom header.
+* `postprocess.py` – Extracts a CSRF token from the response body and stores it (for the next request).
+Usage:
+```
+sqlmap -u "http://target.com/page?id=1" \
+       --preprocess=preprocess.py \
+       --postprocess=postprocess.py
+```
+These are **starter templates** – you can adapt them to your needs, but for serious work, we recommend the advanced `hooks.py` below.
+
+## 🚀 Advanced All‑in‑One: `hooks.py`
+
+`hooks.py` is a **production‑grade**, fully configurable pre/post‑processing engine that consolidates everything into a single file.
+**Key features:**
+* **Token extraction & injection** – define regex patterns to pull tokens from response body/headers, then inject them into subsequent requests as parameters, headers, or cookies.
+* **Payload encoding** – encode injection payloads with Base64, hex, double URL‑encode, or custom methods.
+* **Header manipulation** – add static headers, rotate User‑Agent, add timestamps.
+* **Response decoding** – handle gzip, Base64, JSON extraction, and strip HTML comments.
+* **Comprehensive logging** – log all modifications to a file and console for debugging.
+* **Multi‑step authentication** – skeleton for login flows (can be extended with requests library).
+  
+**How to use it:**
+1. Save `hooks.py` in your working directory.
+2. Edit the `SETTINGS` dict at the top to match your target (enable/disable features, adjust regex patterns, choose encoding, etc.).
+3. Run sqlmap with both flags pointing to the same file:
+```
+sqlmap -u "http://target.com/page?id=1" \
+       --preprocess=hooks.py \
+       --postprocess=hooks.py \
+       --batch --level=5
+```
+
+***Why it’s important:***
+* **Handles dynamic tokens** – no more manual cookie/token updates; the hooks do it live.
+* **Defeats WAFs** – encode payloads on the fly to bypass signature‑based filters.
+* **Saves time** – eliminates the need for separate `--cookie`, `--headers`, or `--data` fiddling.
+
+Customisation example – inside `hooks.py`, you’ll find:
+```
+SETTINGS = {
+    "token_extract": {
+        "enabled": True,
+        "patterns": [
+            (r'body', r'name=["\']csrf_token["\']\s+value=["\']([^"\']+)["\']', 'csrf'),
+            ...
+        ],
+        "inject_into": {
+            "csrf": {"target": "data", "param": "csrf_token"},
+            ...
+        }
+    },
+    "payload_encoding": {
+        "enabled": True,
+        "method": "base64",   # or 'hex', 'double_url', 'custom'
+    },
+    ...
+}
+```
+Simply tweak these settings to fit your target, and you’re good to go.  
+  
+**Pro tip:** _combine the hooks with your favourite tampers for maximum evasion:_
+```
+sqlmap -u "http://target.com/api?id=1" \
+       --preprocess=hooks.py --postprocess=hooks.py \
+       --tamper=json_unicode_escape,math_exp_obfuscator
+```
+This gives you ***unmatched control*** over every aspect of the request/response cycle.
+
 # ⚠️ Disclaimer
 ***Use these tools only on systems you own or have explicit written permission to test.***
 _The author (Bearded Viking / Bearded Viking Security Forge) assumes **no liability** for any misuse or damage caused by these scripts. They are provided "AS IS" without warranty of any kind._
