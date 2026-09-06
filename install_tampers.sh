@@ -84,10 +84,10 @@ if [ "$COPY_ALL" = true ]; then
 else
     # Default list of the 4 tampers
     DEFAULT_TAMPERS=(
-        "random_chunk_splitter.py"
-        "math_exp_obfuscator.py"
-        "nested_versioned_comments.py"
-        "json_unicode_escape.py"
+        "Tampers/random_chunk_splitter.py"
+        "Tampers/math_exp_obfuscator.py"
+        "Tampers/nested_versioned_comments.py"
+        "Tampers/json_unicode_escape.py"
     )
     FILES=()
     for f in "${DEFAULT_TAMPERS[@]}"; do

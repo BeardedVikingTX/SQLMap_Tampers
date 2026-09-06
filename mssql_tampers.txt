@@ -1,0 +1,1 @@
+mssqlnosemicolon,plus2concat,plus2fnconcat,sp_password,space2mssqlblank

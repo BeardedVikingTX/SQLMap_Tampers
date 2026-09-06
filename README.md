@@ -51,8 +51,20 @@ _To copy all `.py` files in the directory:_
 sqlmap --list-tampers | grep -E "(json_unicode_escape|math_exp_obfuscator|nested_versioned_comments|random_chunk_splitter)"
 ```
 **Success!** Here’s what it looks like when the script does its magic:
+
+* **Tamper Scripts BEFORE Installing Our Scripts:**
 <p align="center"> 
-  <img src="images/sqlmap_tamper_relocating.png" alt="Installation success" width="80%"> 
+  <img src="images/sqlmap_tampers_before_bash_script.png" alt="SQLMap Tamper Scripts BEFORE Installing Custom Scripts." width="80%"> 
+</p>
+
+* **Installing OUR Tamper Scripts:** 
+<p align="center">
+  <img src="images/installed_tampers.png" alt="Installing Custom Tamper Scripts." width="80%">
+</p>
+
+* **Tamper Scripts AFTER Installing Our Scripts:**
+<p align="center">
+  <img src="images/sqlmap_tampers_after_bash_script.png" alt="SQLMap Tamper Scripts AFTER Installing Custom Scripts." withd="80%">
 </p>
 
 ## 🎯 Usage Examples
