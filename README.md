@@ -52,7 +52,7 @@ sqlmap --list-tampers | grep -E "(json_unicode_escape|math_exp_obfuscator|nested
 ```
 **Success!** Here’s what it looks like when the script does its magic:
 <p align="center"> 
-  <img src="sqlmap_tamper_relocating.png" alt="Installation success" width="80%"> 
+  <img src="images/sqlmap_tamper_relocating.png" alt="Installation success" width="80%"> 
 </p>
 
 ## 🎯 Usage Examples
