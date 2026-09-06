@@ -100,11 +100,11 @@ This project is licensed under the MIT License – see the [LICENSE.md[(LICENSE.
   <img src="hackers_in_the_zone.gif" alt="Hackers in the Zone" width="45%">
 </p>
 **Bearded Viking** (BeardedVikingTX) – Security researcher, penetration tester, and open‑source contributor.  
-🌐 [Web](https://beardedviking.org)  
-🎥 [TikTok](https://www.tiktok.com/@beardedvikingtx)  
-👨‍💻 [LinkedIn](https://www.linkedin.com/in/bearded-viking-3112a8431/)  
-📘 [Facebook](https://www.facebook.com/BeardedVikingTX)  
-✒️ [Medium](https://beardedviking.medium.com/)  
+* 🌐 [Web](https://beardedviking.org)  
+* 🎥 [TikTok](https://www.tiktok.com/@beardedvikingtx)  
+* 👨‍💻 [LinkedIn](https://www.linkedin.com/in/bearded-viking-3112a8431/)  
+* 📘 [Facebook](https://www.facebook.com/BeardedVikingTX)  
+* ✒️ [Medium](https://beardedviking.medium.com/)  
 
 # 🧩 Stay Tuned
 We’re constantly adding new tampers and enhancing existing ones.
